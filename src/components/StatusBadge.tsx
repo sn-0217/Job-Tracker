@@ -1,25 +1,28 @@
 import { STATUS_CONFIG, type ApplicationStatus } from "@/types/job";
 
-const statusColorMap: Record<string, string> = {
-  "status-wishlist": "bg-muted/60 text-muted-foreground ring-muted-foreground/20",
-  "status-applied": "bg-primary/10 text-primary ring-primary/20",
-  "status-reviewing": "bg-blue-50 text-blue-500 ring-blue-500/20",
-  "status-phone-screen": "bg-violet-50 text-violet-600 ring-violet-600/20",
-  "status-interviewing": "bg-violet-50 text-violet-600 ring-violet-600/20",
-  "status-offer": "bg-emerald-50 text-emerald-600 ring-emerald-600/20",
-  "status-rejected": "bg-muted/60 text-muted-foreground ring-muted-foreground/20",
-  "status-ghosted": "bg-amber-50 text-amber-600 ring-amber-600/20",
-  "status-withdrawn": "bg-muted/60 text-muted-foreground ring-muted-foreground/20",
+const statusStyles: Record<string, { dot: string; text: string; bg: string }> = {
+  "status-saved":        { dot: "bg-zinc-500",    text: "text-zinc-400",    bg: "bg-zinc-500/10"    },
+  "status-applied":      { dot: "bg-indigo-500",  text: "text-indigo-400",  bg: "bg-indigo-500/10"  },
+  "status-interviewing": { dot: "bg-violet-500",  text: "text-violet-400",  bg: "bg-violet-500/10"  },
+  "status-offer":        { dot: "bg-emerald-500", text: "text-emerald-400", bg: "bg-emerald-500/10" },
+  "status-rejected":     { dot: "bg-zinc-600",    text: "text-zinc-500",    bg: "bg-zinc-500/10"    },
 };
 
-export function StatusBadge({ status }: { status: ApplicationStatus }) {
-  const config = STATUS_CONFIG[status];
-  const colorClass = statusColorMap[config.color] || statusColorMap["status-wishlist"];
-
+export function StatusBadge({ status }: { status: string }) {
+  // Defensive: unknown/old statuses fall back gracefully
+  const config = STATUS_CONFIG[status as ApplicationStatus];
+  if (!config) {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-md bg-zinc-500/10 px-2 py-0.5 text-[11px] font-medium text-zinc-500">
+        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-600" />
+        {status}
+      </span>
+    );
+  }
+  const style = statusStyles[config.color] ?? statusStyles["status-saved"];
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium uppercase tracking-wider ring-1 ring-inset ${colorClass}`}
-    >
+    <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-medium ${style.bg} ${style.text}`}>
+      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${style.dot}`} />
       {config.label}
     </span>
   );

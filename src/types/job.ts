@@ -1,21 +1,15 @@
+// ── 5 simple statuses ─────────────────────────────────────────────────────────
 export type ApplicationStatus =
-  | "wishlist"
+  | "saved"
   | "applied"
-  | "reviewing"
-  | "phone-screen"
   | "interviewing"
-  | "final-round"
   | "offer"
-  | "accepted"
-  | "declined"
-  | "rejected"
-  | "ghosted"
-  | "withdrawn";
+  | "rejected";
 
-export type WorkLocation = "remote" | "hybrid" | "onsite";
+export type WorkLocation   = "remote" | "hybrid" | "onsite";
 export type EmploymentType = "full-time" | "part-time" | "contract" | "freelance" | "internship";
-export type JobSource = "linkedin" | "glassdoor" | "indeed" | "referral" | "company-site" | "other";
-export type Priority = 1 | 2 | 3 | 4 | 5;
+export type JobSource      = "linkedin" | "glassdoor" | "indeed" | "referral" | "company-site" | "other";
+export type Priority       = 1 | 2 | 3 | 4 | 5;
 
 export interface JobApplication {
   id: string;
@@ -27,9 +21,9 @@ export interface JobApplication {
   employmentType?: EmploymentType;
   officeLocation?: string;
   status: ApplicationStatus;
-  dateApplied: string; // ISO date
-  dateUpdated: string; // ISO date
-  followUpDate?: string; // ISO date
+  dateApplied: string;   // ISO
+  dateUpdated: string;   // ISO
+  followUpDate?: string; // ISO
   salaryMin?: number;
   salaryMax?: number;
   targetSalary?: number;
@@ -40,39 +34,32 @@ export interface JobApplication {
 }
 
 export const STATUS_CONFIG: Record<ApplicationStatus, { label: string; color: string }> = {
-  wishlist: { label: "Wishlist", color: "status-wishlist" },
-  applied: { label: "Applied", color: "status-applied" },
-  reviewing: { label: "Under Review", color: "status-reviewing" },
-  "phone-screen": { label: "Phone Screen", color: "status-phone-screen" },
+  saved:        { label: "Saved",        color: "status-saved"        },
+  applied:      { label: "Applied",      color: "status-applied"      },
   interviewing: { label: "Interviewing", color: "status-interviewing" },
-  "final-round": { label: "Final Round", color: "status-interviewing" },
-  offer: { label: "Offer", color: "status-offer" },
-  accepted: { label: "Accepted", color: "status-offer" },
-  declined: { label: "Declined", color: "status-rejected" },
-  rejected: { label: "Rejected", color: "status-rejected" },
-  ghosted: { label: "Ghosted", color: "status-ghosted" },
-  withdrawn: { label: "Withdrawn", color: "status-withdrawn" },
+  offer:        { label: "Offer",        color: "status-offer"        },
+  rejected:     { label: "Rejected",     color: "status-rejected"     },
 };
 
 export const JOB_SOURCES: { value: JobSource; label: string }[] = [
-  { value: "linkedin", label: "LinkedIn" },
-  { value: "glassdoor", label: "Glassdoor" },
-  { value: "indeed", label: "Indeed" },
-  { value: "referral", label: "Referral" },
-  { value: "company-site", label: "Company Site" },
-  { value: "other", label: "Other" },
+  { value: "linkedin",      label: "LinkedIn"      },
+  { value: "glassdoor",     label: "Glassdoor"     },
+  { value: "indeed",        label: "Indeed"        },
+  { value: "referral",      label: "Referral"      },
+  { value: "company-site",  label: "Company Site"  },
+  { value: "other",         label: "Other"         },
 ];
 
 export const WORK_LOCATIONS: { value: WorkLocation; label: string }[] = [
-  { value: "remote", label: "Remote" },
-  { value: "hybrid", label: "Hybrid" },
+  { value: "remote", label: "Remote"  },
+  { value: "hybrid", label: "Hybrid"  },
   { value: "onsite", label: "On-site" },
 ];
 
 export const EMPLOYMENT_TYPES: { value: EmploymentType; label: string }[] = [
-  { value: "full-time", label: "Full-time" },
-  { value: "part-time", label: "Part-time" },
-  { value: "contract", label: "Contract" },
-  { value: "freelance", label: "Freelance" },
+  { value: "full-time",  label: "Full-time"  },
+  { value: "part-time",  label: "Part-time"  },
+  { value: "contract",   label: "Contract"   },
+  { value: "freelance",  label: "Freelance"  },
   { value: "internship", label: "Internship" },
 ];

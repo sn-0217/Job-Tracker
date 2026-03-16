@@ -1,14 +1,15 @@
-import { motion } from "framer-motion";
-import { MoreHorizontal, ExternalLink, Star } from "lucide-react";
-import { StatusBadge } from "./StatusBadge";
-import { PulseIndicator } from "./PulseIndicator";
-import type { JobApplication } from "@/types/job";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type { JobApplication, JobSource } from "@/types/job";
+import { motion } from "framer-motion";
+import { ExternalLink, MapPin, MoreHorizontal } from "lucide-react";
+import { PulseIndicator } from "./PulseIndicator";
+import { StatusBadge } from "./StatusBadge";
 
 interface JobTableProps {
   applications: JobApplication[];
@@ -17,26 +18,75 @@ interface JobTableProps {
   onArchive: (id: string, archived: boolean) => void;
 }
 
-const formatDate = (d: string) => {
-  return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+const formatDate = (d: string) =>
+  new Date(d).toLocaleDateString("en-IN", { month: "short", day: "numeric" });
+
+/** Format salary in Indian system: ₹8.0L / ₹8–13L */
+function formatSalaryIN(min?: number, max?: number): string | null {
+  if (!min && !max) return null;
+  const fmt = (n: number) => {
+    if (n >= 1_00_00_000) return `${(n / 1_00_00_000).toFixed(1)}Cr`;
+    if (n >= 1_00_000)    return `${(n / 1_00_000).toFixed(1)}L`;
+    return `${(n / 1000).toFixed(0)}K`;
+  };
+  if (min && max) return `₹${fmt(min)}–${fmt(max)}`;
+  return `₹${fmt(min || max!)}`;
+}
+
+const SOURCE_LABELS: Partial<Record<JobSource, string>> = {
+  linkedin:       "LI",
+  glassdoor:      "GD",
+  indeed:         "IN",
+  referral:       "Ref",
+  "company-site": "CS",
+  other:          "—",
 };
 
-const formatSalary = (min?: number, max?: number) => {
-  if (!min && !max) return "—";
-  const fmt = (n: number) => `$${Math.round(n / 1000)}k`;
-  if (min && max) return `${fmt(min)}–${fmt(max)}`;
-  return fmt(min || max!);
+const LOCATION_CHIP: Record<string, string> = {
+  remote:  "bg-emerald-500/10 text-emerald-400",
+  hybrid:  "bg-amber-400/10 text-amber-400",
+  onsite:  "bg-sky-400/10 text-sky-400",
 };
+
+/** Deterministic avatar color from company name */
+function avatarColor(name: string) {
+  const palette = [
+    "bg-indigo-500/20 text-indigo-300",
+    "bg-violet-500/20 text-violet-300",
+    "bg-sky-500/20    text-sky-300",
+    "bg-emerald-500/20 text-emerald-300",
+    "bg-amber-500/20  text-amber-300",
+    "bg-rose-500/20   text-rose-300",
+    "bg-pink-500/20   text-pink-300",
+    "bg-teal-500/20   text-teal-300",
+  ];
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
+  return palette[Math.abs(h) % palette.length];
+}
+
+const HEADERS = ["Role / Company", "Status", "Date", "CTC", "Type", ""];
 
 export function JobTable({ applications, onSelect, onDelete, onArchive }: JobTableProps) {
   if (applications.length === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center py-24">
-        <div className="rounded-lg border border-dashed border-border p-12 text-center">
-          <p className="text-sm font-medium text-muted-foreground">No applications yet</p>
-          <p className="mt-1 text-[13px] text-muted-foreground/70">
-            Press <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[11px] font-mono">⌘ N</kbd> to track your first application
-          </p>
+        <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border/50 px-16 py-14 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+            <svg className="h-6 w-6 text-primary/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-[14px] font-semibold text-foreground">No applications yet</p>
+            <p className="mt-1 text-[13px] text-muted-foreground">
+              Press{" "}
+              <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[11px] font-mono">Ctrl N</kbd>
+              {" "}or click <span className="text-primary font-medium">Track Job</span> to get started
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -45,97 +95,113 @@ export function JobTable({ applications, onSelect, onDelete, onArchive }: JobTab
   return (
     <div className="flex-1 overflow-auto">
       {/* Header */}
-      <div className="sticky top-0 z-10 grid grid-cols-[1fr_120px_100px_100px_40px] items-center border-b border-border bg-background px-6 py-2">
-        <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Role / Company
-        </span>
-        <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Status
-        </span>
-        <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Date
-        </span>
-        <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Comp
-        </span>
-        <span />
+      <div className="sticky top-0 z-10 grid grid-cols-[1fr_130px_84px_110px_90px_40px] items-center border-b border-border bg-background/95 px-6 py-2.5 backdrop-blur-sm">
+        {HEADERS.map((h) => (
+          <span key={h} className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/50">
+            {h}
+          </span>
+        ))}
       </div>
 
       {/* Rows */}
-      {applications.map((app, i) => (
-        <motion.div
-          key={app.id}
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1], delay: i * 0.03 }}
-          onClick={() => onSelect(app)}
-          className="group grid h-12 cursor-pointer grid-cols-[1fr_120px_100px_100px_40px] items-center border-b border-muted/40 px-6 transition-colors hover:bg-muted/30"
-        >
-          {/* Role / Company */}
-          <div className="flex items-center gap-3 overflow-hidden pr-4">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-[11px] font-semibold uppercase text-muted-foreground">
-              {app.company.slice(0, 2)}
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <p className="truncate text-[13px] font-medium text-foreground">{app.jobTitle}</p>
-                {app.jobPostingUrl && (
-                  <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-                )}
+      {applications.map((app, i) => {
+        const ctc    = formatSalaryIN(app.salaryMin, app.salaryMax);
+        const locCls = app.workLocation ? (LOCATION_CHIP[app.workLocation] ?? "") : "";
+
+        return (
+          <motion.div
+            key={app.id}
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1], delay: i * 0.02 }}
+            onClick={() => onSelect(app)}
+            className="group grid cursor-pointer grid-cols-[1fr_130px_84px_110px_90px_40px] items-center border-b border-border/40 px-6 py-3 transition-all duration-100 hover:bg-white/[0.025]"
+          >
+            {/* Company + role */}
+            <div className="flex items-center gap-3 overflow-hidden pr-4">
+              <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[10px] font-bold uppercase tracking-wide ${avatarColor(app.company)}`}>
+                {app.company.slice(0, 2)}
               </div>
-              <div className="flex items-center gap-1.5">
-                <p className="truncate text-[12px] text-muted-foreground">{app.company}</p>
-                {app.workLocation && (
-                  <span className="text-[11px] text-muted-foreground/60">· {app.workLocation}</span>
-                )}
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <p className="truncate text-[13px] font-semibold text-foreground">{app.jobTitle}</p>
+                  {app.jobPostingUrl && (
+                    <a
+                      href={app.jobPostingUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+                    >
+                      <ExternalLink className="h-3 w-3 text-muted-foreground hover:text-primary" />
+                    </a>
+                  )}
+                </div>
+                <div className="flex items-center gap-1">
+                  <p className="truncate text-[12px] text-muted-foreground">{app.company}</p>
+                  {app.officeLocation && (
+                    <span className="flex items-center gap-0.5 text-[11px] text-muted-foreground/40">
+                      <MapPin className="h-2.5 w-2.5" />
+                      {app.officeLocation}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-0.5 pl-2">
-              {Array.from({ length: app.priority }, (_, j) => (
-                <Star key={j} className="h-3 w-3 fill-amber-400 text-amber-400" />
-              ))}
+
+            {/* Status */}
+            <div><StatusBadge status={app.status} /></div>
+
+            {/* Date */}
+            <div className="flex items-center gap-1.5 text-[12px] tabular-nums text-muted-foreground">
+              <PulseIndicator lastActivityDate={app.dateUpdated} />
+              {formatDate(app.dateApplied)}
             </div>
-          </div>
 
-          {/* Status */}
-          <div>
-            <StatusBadge status={app.status} />
-          </div>
+            {/* CTC */}
+            <div className="text-[12px] tabular-nums text-muted-foreground">
+              {ctc ?? <span className="text-muted-foreground/25">—</span>}
+            </div>
 
-          {/* Date */}
-          <div className="flex items-center gap-1.5 tabular-nums text-[13px] text-muted-foreground">
-            <PulseIndicator lastActivityDate={app.dateUpdated} />
-            {formatDate(app.dateApplied)}
-          </div>
+            {/* Work location */}
+            <div>
+              {app.workLocation ? (
+                <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium ${locCls}`}>
+                  {app.workLocation.charAt(0).toUpperCase() + app.workLocation.slice(1)}
+                </span>
+              ) : app.jobSource ? (
+                <span className="inline-flex items-center rounded-md border border-border/50 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                  {SOURCE_LABELS[app.jobSource] ?? app.jobSource}
+                </span>
+              ) : null}
+            </div>
 
-          {/* Salary */}
-          <div className="tabular-nums text-[13px] text-muted-foreground">
-            {formatSalary(app.salaryMin, app.salaryMax)}
-          </div>
-
-          {/* Actions */}
-          <div onClick={(e) => e.stopPropagation()}>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex h-7 w-7 items-center justify-center rounded-md opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100">
-                  <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40">
-                <DropdownMenuItem onClick={() => onArchive(app.id, !app.archived)}>
-                  {app.archived ? "Unarchive" : "Archive"}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onDelete(app.id)}
-                  className="text-destructive focus:text-destructive"
-                >
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </motion.div>
-      ))}
+            {/* Actions */}
+            <div onClick={(e) => e.stopPropagation()}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-all hover:bg-white/8 hover:text-foreground group-hover:opacity-100">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40">
+                  <DropdownMenuItem onClick={() => onSelect(app)}>Edit</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onArchive(app.id, !app.archived)}>
+                    {app.archived ? "Unarchive" : "Archive"}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => onDelete(app.id)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </motion.div>
+        );
+      })}
     </div>
   );
 }

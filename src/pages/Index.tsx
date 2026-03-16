@@ -1,11 +1,10 @@
-import { useState, useCallback, useEffect } from "react";
-import { AppSidebar } from "@/components/AppSidebar";
-import { TopBar } from "@/components/TopBar";
-import { JobTable } from "@/components/JobTable";
-import { ApplicationDrawer } from "@/components/ApplicationDrawer";
 import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
+import { ApplicationDrawer } from "@/components/ApplicationDrawer";
+import { JobTable } from "@/components/JobTable";
+import { TopNav } from "@/components/TopNav";
 import { useJobStore } from "@/store/useJobStore";
 import type { JobApplication } from "@/types/job";
+import { useCallback, useEffect, useState } from "react";
 
 const Index = () => {
   const store = useJobStore();
@@ -42,8 +41,9 @@ const Index = () => {
   }, [handleAddNew]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <AppSidebar
+    <div className="flex h-screen flex-col overflow-hidden bg-background">
+      {/* Top Navigation */}
+      <TopNav
         statusFilter={store.statusFilter}
         setStatusFilter={(s) => {
           store.setStatusFilter(s);
@@ -56,30 +56,31 @@ const Index = () => {
         }}
         showAnalytics={showAnalytics}
         onShowAnalytics={() => setShowAnalytics(true)}
+        searchQuery={store.searchQuery}
+        setSearchQuery={store.setSearchQuery}
+        onAddNew={handleAddNew}
         stats={store.stats}
       />
 
+      {/* Main content area */}
       <main className="flex flex-1 flex-col overflow-hidden">
-        {showAnalytics ? (
+        {store.isLoading ? (
+          <div className="flex flex-1 flex-col items-center justify-center space-y-4 py-24">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <p className="text-[13px] text-muted-foreground animate-pulse">Loading applications...</p>
+          </div>
+        ) : showAnalytics ? (
           <AnalyticsDashboard
             applications={store.allApplications}
             onClose={() => setShowAnalytics(false)}
           />
         ) : (
-          <>
-            <TopBar
-              searchQuery={store.searchQuery}
-              setSearchQuery={store.setSearchQuery}
-              onAddNew={handleAddNew}
-              followUpsDue={store.stats.followUpsDue}
-            />
-            <JobTable
-              applications={store.applications}
-              onSelect={handleSelect}
-              onDelete={store.deleteApplication}
-              onArchive={handleArchive}
-            />
-          </>
+          <JobTable
+            applications={store.applications}
+            onSelect={handleSelect}
+            onDelete={store.deleteApplication}
+            onArchive={handleArchive}
+          />
         )}
       </main>
 

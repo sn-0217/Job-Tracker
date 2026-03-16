@@ -1,18 +1,18 @@
-import { useMemo } from "react";
-import { motion } from "framer-motion";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-  PieChart,
-  Pie,
-} from "recharts";
-import type { JobApplication, ApplicationStatus } from "@/types/job";
+import type { ApplicationStatus, JobApplication } from "@/types/job";
 import { STATUS_CONFIG } from "@/types/job";
+import { motion } from "framer-motion";
+import { useMemo } from "react";
+import {
+    Bar,
+    BarChart,
+    Cell,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from "recharts";
 
 interface AnalyticsDashboardProps {
   applications: JobApplication[];
@@ -20,30 +20,27 @@ interface AnalyticsDashboardProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  wishlist: "#71717a",
-  applied: "#3b82f6",
-  reviewing: "#60a5fa",
-  "phone-screen": "#8b5cf6",
-  interviewing: "#8b5cf6",
-  "final-round": "#7c3aed",
-  offer: "#10b981",
-  accepted: "#059669",
-  declined: "#71717a",
-  rejected: "#71717a",
-  ghosted: "#f59e0b",
-  withdrawn: "#71717a",
+  saved:        "#71717a",
+  applied:      "#6366f1",
+  interviewing: "#a78bfa",
+  offer:        "#34d399",
+  rejected:     "#52525b",
 };
 
+const CHART_COLORS = ["#6366f1", "#a78bfa", "#34d399", "#fbbf24", "#f87171", "#71717a"];
+
 const PIPELINE_ORDER: ApplicationStatus[] = [
-  "wishlist",
-  "applied",
-  "reviewing",
-  "phone-screen",
-  "interviewing",
-  "final-round",
-  "offer",
-  "accepted",
+  "saved", "applied", "interviewing", "offer",
 ];
+
+const tooltipStyle = {
+  fontSize: 12,
+  borderRadius: 8,
+  border: "1px solid hsl(226, 16%, 18%)",
+  backgroundColor: "hsl(226, 22%, 9%)",
+  color: "#e2e8f0",
+  boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+};
 
 export function AnalyticsDashboard({ applications, onClose }: AnalyticsDashboardProps) {
   const active = useMemo(() => applications.filter((a) => !a.archived), [applications]);
@@ -53,41 +50,45 @@ export function AnalyticsDashboard({ applications, onClose }: AnalyticsDashboard
       name: STATUS_CONFIG[status].label,
       count: active.filter((a) => a.status === status).length,
       color: STATUS_COLORS[status],
-    })).filter((d) => d.count > 0 || PIPELINE_ORDER.indexOf(d.name as any) < 4);
+    })); // show all 4 pipeline statuses always
   }, [active]);
 
   const responseRate = useMemo(() => {
-    const applied = active.filter((a) => a.status !== "wishlist").length;
-    if (applied === 0) return { rate: 0, responded: 0, total: 0 };
+    // "responded" = anything past "applied"
+    const total     = active.filter((a) => a.status !== "saved").length;
+    if (total === 0) return { rate: 0, responded: 0, total: 0 };
     const responded = active.filter((a) =>
-      ["reviewing", "phone-screen", "interviewing", "final-round", "offer", "accepted", "rejected"].includes(a.status)
+      ["interviewing", "offer", "rejected"].includes(a.status)
     ).length;
-    return { rate: applied > 0 ? Math.round((responded / applied) * 100) : 0, responded, total: applied };
+    return { rate: Math.round((responded / total) * 100), responded, total };
   }, [active]);
 
   const interviewRate = useMemo(() => {
-    const applied = active.filter((a) => a.status !== "wishlist").length;
+    const total       = active.filter((a) => a.status !== "saved").length;
     const interviewing = active.filter((a) =>
-      ["phone-screen", "interviewing", "final-round", "offer", "accepted"].includes(a.status)
+      ["interviewing", "offer"].includes(a.status)
     ).length;
-    return { rate: applied > 0 ? Math.round((interviewing / applied) * 100) : 0, count: interviewing, total: applied };
+    return { rate: total > 0 ? Math.round((interviewing / total) * 100) : 0, count: interviewing };
   }, [active]);
 
   const offerRate = useMemo(() => {
-    const applied = active.filter((a) => a.status !== "wishlist").length;
-    const offers = active.filter((a) => ["offer", "accepted"].includes(a.status)).length;
-    return { rate: applied > 0 ? Math.round((offers / applied) * 100) : 0, count: offers, total: applied };
+    const total  = active.filter((a) => a.status !== "saved").length;
+    const offers = active.filter((a) => a.status === "offer").length;
+    return { rate: total > 0 ? Math.round((offers / total) * 100) : 0, count: offers };
   }, [active]);
 
   const sourceData = useMemo(() => {
     const counts: Record<string, number> = {};
     active.forEach((a) => {
-      const src = a.jobSource || "unknown";
+      const src = a.jobSource || "other";
       counts[src] = (counts[src] || 0) + 1;
     });
-    const colors = ["#3b82f6", "#8b5cf6", "#10b981", "#f59e0b", "#ef4444", "#71717a"];
     return Object.entries(counts)
-      .map(([name, value], i) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value, fill: colors[i % colors.length] }))
+      .map(([name, value], i) => ({
+        name: name.charAt(0).toUpperCase() + name.slice(1).replace("-", " "),
+        value,
+        fill: CHART_COLORS[i % CHART_COLORS.length],
+      }))
       .sort((a, b) => b.value - a.value);
   }, [active]);
 
@@ -119,52 +120,73 @@ export function AnalyticsDashboard({ applications, onClose }: AnalyticsDashboard
       }));
   }, [active]);
 
-  const labelClass = "text-[11px] font-semibold uppercase tracking-widest text-muted-foreground";
-  const cardClass = "rounded-lg border border-border bg-card p-5";
-
   const statCards = [
-    { label: "Total Active", value: active.length, sub: `${applications.filter((a) => a.archived).length} archived` },
-    { label: "Response Rate", value: `${responseRate.rate}%`, sub: `${responseRate.responded}/${responseRate.total}` },
-    { label: "Interview Rate", value: `${interviewRate.rate}%`, sub: `${interviewRate.count} interviews` },
-    { label: "Offer Rate", value: `${offerRate.rate}%`, sub: `${offerRate.count} offers` },
+    {
+      label: "Total Active",
+      value: active.length,
+      sub: `${applications.filter((a) => a.archived).length} archived`,
+      accent: "text-foreground",
+    },
+    {
+      label: "Response Rate",
+      value: `${responseRate.rate}%`,
+      sub: `${responseRate.responded} / ${responseRate.total}`,
+      accent: responseRate.rate > 30 ? "text-emerald-400" : "text-foreground",
+    },
+    {
+      label: "Interview Rate",
+      value: `${interviewRate.rate}%`,
+      sub: `${interviewRate.count} interviews`,
+      accent: interviewRate.rate > 20 ? "text-violet-400" : "text-foreground",
+    },
+    {
+      label: "Offer Rate",
+      value: `${offerRate.rate}%`,
+      sub: `${offerRate.count} offers`,
+      accent: offerRate.count > 0 ? "text-emerald-400" : "text-foreground",
+    },
   ];
+
+  const cardClass = "rounded-xl border border-border/60 bg-card p-5";
+  const labelClass = "text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/60";
+
+  /** Format a salary number to Indian lakh shorthand */
+  function fmtINR(n: number) {
+    if (n >= 1_00_00_000) return `₹${(n / 1_00_00_000).toFixed(1)}Cr`;
+    if (n >= 1_00_000)    return `₹${(n / 1_00_000).toFixed(1)}L`;
+    return `₹${(n / 1000).toFixed(0)}K`;
+  }
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto">
-      {/* Header */}
-      <div className="flex h-14 items-center justify-between border-b border-border px-6">
-        <p className="font-display text-sm text-foreground">Analytics</p>
-        <button
-          onClick={onClose}
-          className="rounded-md border border-border px-3 py-1.5 text-[13px] text-muted-foreground transition-colors hover:bg-muted"
-        >
-          Back to Pipeline
-        </button>
+      {/* Header — no explicit back button; user uses the Analytics tab to toggle */}
+      <div className="flex h-[52px] items-center gap-3 border-b border-border px-6">
+        <span className="text-[13px] font-semibold text-foreground">Analytics Overview</span>
       </div>
 
-      <div className="space-y-6 px-6 py-6">
+      <div className="space-y-5 px-5 py-5">
         {/* Stat Cards */}
         <div className="grid grid-cols-4 gap-4">
           {statCards.map((s, i) => (
             <motion.div
               key={s.label}
-              initial={{ opacity: 0, y: 8 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ delay: i * 0.06, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
               className={cardClass}
             >
               <p className={labelClass}>{s.label}</p>
-              <p className="mt-1 font-display text-2xl text-foreground">{s.value}</p>
-              <p className="mt-0.5 text-[12px] text-muted-foreground">{s.sub}</p>
+              <p className={`mt-1.5 font-display text-2xl tabular-nums ${s.accent}`}>{s.value}</p>
+              <p className="mt-0.5 text-[12px] text-muted-foreground/70">{s.sub}</p>
             </motion.div>
           ))}
         </div>
 
-        {/* Charts Row */}
+        {/* Charts Row 1 */}
         <div className="grid grid-cols-2 gap-4">
           {/* Pipeline Funnel */}
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             className={cardClass}
@@ -178,27 +200,24 @@ export function AnalyticsDashboard({ applications, onClose }: AnalyticsDashboard
                     type="category"
                     dataKey="name"
                     width={90}
-                    tick={{ fontSize: 12, fill: "#71717a" }}
+                    tick={{ fontSize: 11, fill: "#71717a" }}
                     axisLine={false}
                     tickLine={false}
                   />
                   <Tooltip
-                    contentStyle={{
-                      fontSize: 12,
-                      borderRadius: 6,
-                      border: "1px solid hsl(220, 13%, 91%)",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-                    }}
+                    contentStyle={tooltipStyle}
+                    itemStyle={{ color: "#6366f1" }}
+                    cursor={{ fill: "rgba(255,255,255,0.03)" }}
                   />
-                  <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={20}>
+                  <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={18}>
                     {pipelineData.map((entry, idx) => (
-                      <Cell key={idx} fill={entry.color} />
+                      <Cell key={idx} fill={entry.color} fillOpacity={0.85} />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex h-[240px] items-center justify-center text-[13px] text-muted-foreground">
+              <div className="flex h-[240px] items-center justify-center text-[13px] text-muted-foreground/50">
                 No data yet
               </div>
             )}
@@ -206,14 +225,14 @@ export function AnalyticsDashboard({ applications, onClose }: AnalyticsDashboard
 
           {/* Sources */}
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             className={cardClass}
           >
             <p className={`${labelClass} mb-4`}>Application Sources</p>
             {sourceData.length > 0 ? (
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-4">
                 <ResponsiveContainer width="50%" height={200}>
                   <PieChart>
                     <Pie
@@ -221,42 +240,37 @@ export function AnalyticsDashboard({ applications, onClose }: AnalyticsDashboard
                       dataKey="value"
                       cx="50%"
                       cy="50%"
-                      innerRadius={50}
-                      outerRadius={80}
-                      paddingAngle={2}
+                      innerRadius={52}
+                      outerRadius={82}
+                      paddingAngle={3}
                       strokeWidth={0}
                     />
-                    <Tooltip
-                      contentStyle={{
-                        fontSize: 12,
-                        borderRadius: 6,
-                        border: "1px solid hsl(220, 13%, 91%)",
-                      }}
-                    />
+                    <Tooltip contentStyle={tooltipStyle} itemStyle={{ color: "#6366f1" }} />
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {sourceData.map((s) => (
                     <div key={s.name} className="flex items-center gap-2">
-                      <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: s.fill }} />
+                      <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: s.fill }} />
                       <span className="text-[12px] text-muted-foreground">{s.name}</span>
-                      <span className="tabular-nums text-[12px] font-medium text-foreground">{s.value}</span>
+                      <span className="ml-auto tabular-nums text-[12px] font-semibold text-foreground">{s.value}</span>
                     </div>
                   ))}
                 </div>
               </div>
             ) : (
-              <div className="flex h-[200px] items-center justify-center text-[13px] text-muted-foreground">
+              <div className="flex h-[200px] items-center justify-center text-[13px] text-muted-foreground/50">
                 No data yet
               </div>
             )}
           </motion.div>
         </div>
 
-        {/* Weekly Activity + Salary */}
+        {/* Charts Row 2 */}
         <div className="grid grid-cols-2 gap-4">
+          {/* Weekly Activity */}
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             className={cardClass}
@@ -272,25 +286,20 @@ export function AnalyticsDashboard({ applications, onClose }: AnalyticsDashboard
                     tickLine={false}
                   />
                   <YAxis hide />
-                  <Tooltip
-                    contentStyle={{
-                      fontSize: 12,
-                      borderRadius: 6,
-                      border: "1px solid hsl(220, 13%, 91%)",
-                    }}
-                  />
-                  <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={28} />
+                  <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
+                  <Bar dataKey="count" fill="#6366f1" fillOpacity={0.8} radius={[4, 4, 0, 0]} barSize={26} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex h-[180px] items-center justify-center text-[13px] text-muted-foreground">
+              <div className="flex h-[180px] items-center justify-center text-[13px] text-muted-foreground/50">
                 No data yet
               </div>
             )}
           </motion.div>
 
+          {/* Compensation */}
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             className={cardClass}
@@ -299,31 +308,31 @@ export function AnalyticsDashboard({ applications, onClose }: AnalyticsDashboard
             <div className="flex h-[180px] flex-col items-center justify-center">
               {avgSalary ? (
                 <>
-                  <p className="font-display text-3xl text-foreground tabular-nums">
-                    ${Math.round(avgSalary / 1000)}k
+                  <p className="font-display text-3xl tabular-nums text-emerald-400">
+                    {fmtINR(avgSalary)}
                   </p>
-                  <p className="mt-1 text-[12px] text-muted-foreground">avg. comp target</p>
-                  <div className="mt-4 flex gap-6">
+                  <p className="mt-1 text-[12px] text-muted-foreground">avg. CTC target</p>
+                  <div className="mt-5 flex gap-8">
                     {active.filter((a) => a.salaryMin).length > 0 && (
                       <div className="text-center">
-                        <p className="tabular-nums text-sm font-medium text-foreground">
-                          ${Math.round(Math.min(...active.filter((a) => a.salaryMin).map((a) => a.salaryMin!)) / 1000)}k
+                        <p className="tabular-nums text-sm font-semibold text-foreground">
+                          {fmtINR(Math.min(...active.filter((a) => a.salaryMin).map((a) => a.salaryMin!)))}
                         </p>
-                        <p className="text-[11px] text-muted-foreground">lowest</p>
+                        <p className="text-[11px] text-muted-foreground/60">lowest</p>
                       </div>
                     )}
                     {active.filter((a) => a.salaryMax).length > 0 && (
                       <div className="text-center">
-                        <p className="tabular-nums text-sm font-medium text-foreground">
-                          ${Math.round(Math.max(...active.filter((a) => a.salaryMax).map((a) => a.salaryMax!)) / 1000)}k
+                        <p className="tabular-nums text-sm font-semibold text-foreground">
+                          {fmtINR(Math.max(...active.filter((a) => a.salaryMax).map((a) => a.salaryMax!)))}
                         </p>
-                        <p className="text-[11px] text-muted-foreground">highest</p>
+                        <p className="text-[11px] text-muted-foreground/60">highest</p>
                       </div>
                     )}
                   </div>
                 </>
               ) : (
-                <p className="text-[13px] text-muted-foreground">Add salary data to see insights</p>
+                <p className="text-[13px] text-muted-foreground/50">Add salary data to see insights</p>
               )}
             </div>
           </motion.div>
