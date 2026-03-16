@@ -1,4 +1,4 @@
-import { Briefcase, Archive, Gift, Star, Filter } from "lucide-react";
+import { Briefcase, Archive, Gift, Star, Filter, BarChart3 } from "lucide-react";
 import type { ApplicationStatus } from "@/types/job";
 
 interface SidebarProps {
@@ -6,6 +6,8 @@ interface SidebarProps {
   setStatusFilter: (s: ApplicationStatus | "all") => void;
   showArchived: boolean;
   setShowArchived: (v: boolean) => void;
+  showAnalytics: boolean;
+  onShowAnalytics: () => void;
   stats: {
     total: number;
     applied: number;
@@ -27,6 +29,8 @@ export function AppSidebar({
   setStatusFilter,
   showArchived,
   setShowArchived,
+  showAnalytics,
+  onShowAnalytics,
   stats,
 }: SidebarProps) {
   const counts: Record<string, number> = {
@@ -49,7 +53,7 @@ export function AppSidebar({
         </p>
         {navItems.map((item) => {
           const Icon = item.icon;
-          const active = !showArchived && statusFilter === item.key;
+          const active = !showArchived && !showAnalytics && statusFilter === item.key;
           return (
             <button
               key={item.key}
@@ -87,6 +91,18 @@ export function AppSidebar({
         >
           <Archive className="h-4 w-4" />
           <span className="flex-1 text-left">Archived</span>
+        </button>
+
+        <button
+          onClick={onShowAnalytics}
+          className={`flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-interface transition-colors ${
+            showAnalytics
+              ? "bg-accent text-accent-foreground font-medium"
+              : "text-sidebar-foreground hover:bg-sidebar-accent"
+          }`}
+        >
+          <BarChart3 className="h-4 w-4" />
+          <span className="flex-1 text-left">Analytics</span>
         </button>
       </nav>
 
