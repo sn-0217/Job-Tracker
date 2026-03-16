@@ -92,6 +92,18 @@ export function AppSidebar({
           <Archive className="h-4 w-4" />
           <span className="flex-1 text-left">Archived</span>
         </button>
+
+        <button
+          onClick={onShowAnalytics}
+          className={`flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-interface transition-colors ${
+            showAnalytics
+              ? "bg-accent text-accent-foreground font-medium"
+              : "text-sidebar-foreground hover:bg-sidebar-accent"
+          }`}
+        >
+          <BarChart3 className="h-4 w-4" />
+          <span className="flex-1 text-left">Analytics</span>
+        </button>
       </nav>
 
       {stats.followUpsDue > 0 && (

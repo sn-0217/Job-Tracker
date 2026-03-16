@@ -3,6 +3,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { TopBar } from "@/components/TopBar";
 import { JobTable } from "@/components/JobTable";
 import { ApplicationDrawer } from "@/components/ApplicationDrawer";
+import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
 import { useJobStore } from "@/store/useJobStore";
 import type { JobApplication } from "@/types/job";
 
@@ -10,6 +11,7 @@ const Index = () => {
   const store = useJobStore();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingApp, setEditingApp] = useState<JobApplication | null>(null);
+  const [showAnalytics, setShowAnalytics] = useState(false);
 
   const handleAddNew = useCallback(() => {
     setEditingApp(null);
@@ -28,7 +30,6 @@ const Index = () => {
     [store]
   );
 
-  // Keyboard shortcut: Cmd+N to add new
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "n") {
@@ -44,26 +45,42 @@ const Index = () => {
     <div className="flex h-screen overflow-hidden bg-background">
       <AppSidebar
         statusFilter={store.statusFilter}
-        setStatusFilter={store.setStatusFilter}
+        setStatusFilter={(s) => {
+          store.setStatusFilter(s);
+          setShowAnalytics(false);
+        }}
         showArchived={store.showArchived}
-        setShowArchived={store.setShowArchived}
+        setShowArchived={(v) => {
+          store.setShowArchived(v);
+          setShowAnalytics(false);
+        }}
+        showAnalytics={showAnalytics}
+        onShowAnalytics={() => setShowAnalytics(true)}
         stats={store.stats}
       />
 
       <main className="flex flex-1 flex-col overflow-hidden">
-        <TopBar
-          searchQuery={store.searchQuery}
-          setSearchQuery={store.setSearchQuery}
-          onAddNew={handleAddNew}
-          followUpsDue={store.stats.followUpsDue}
-        />
-
-        <JobTable
-          applications={store.applications}
-          onSelect={handleSelect}
-          onDelete={store.deleteApplication}
-          onArchive={handleArchive}
-        />
+        {showAnalytics ? (
+          <AnalyticsDashboard
+            applications={store.allApplications}
+            onClose={() => setShowAnalytics(false)}
+          />
+        ) : (
+          <>
+            <TopBar
+              searchQuery={store.searchQuery}
+              setSearchQuery={store.setSearchQuery}
+              onAddNew={handleAddNew}
+              followUpsDue={store.stats.followUpsDue}
+            />
+            <JobTable
+              applications={store.applications}
+              onSelect={handleSelect}
+              onDelete={store.deleteApplication}
+              onArchive={handleArchive}
+            />
+          </>
+        )}
       </main>
 
       <ApplicationDrawer
