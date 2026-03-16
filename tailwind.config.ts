@@ -57,6 +57,21 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        status: {
+          wishlist: "hsl(var(--status-wishlist))",
+          applied: "hsl(var(--status-applied))",
+          reviewing: "hsl(var(--status-reviewing))",
+          "phone-screen": "hsl(var(--status-phone-screen))",
+          interviewing: "hsl(var(--status-interviewing))",
+          offer: "hsl(var(--status-offer))",
+          rejected: "hsl(var(--status-rejected))",
+          ghosted: "hsl(var(--status-ghosted))",
+          withdrawn: "hsl(var(--status-withdrawn))",
+        },
+        pulse: {
+          warning: "hsl(var(--pulse-warning))",
+          stale: "hsl(var(--pulse-stale))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -65,20 +80,12 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
         },
       },
       animation: {
