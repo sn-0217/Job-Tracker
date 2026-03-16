@@ -53,7 +53,7 @@ export function AppSidebar({
         </p>
         {navItems.map((item) => {
           const Icon = item.icon;
-          const active = !showArchived && statusFilter === item.key;
+          const active = !showArchived && !showAnalytics && statusFilter === item.key;
           return (
             <button
               key={item.key}
