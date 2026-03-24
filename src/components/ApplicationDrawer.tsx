@@ -16,6 +16,8 @@ interface ApplicationDrawerProps {
   open: boolean;
   onClose: () => void;
   application?: JobApplication | null;
+  /** Pre-populate the form when opening from a pasted URL */
+  initialData?: Partial<JobApplication>;
   onSave: (data: Omit<JobApplication, "id" | "dateUpdated">) => void;
   onUpdate: (id: string, data: Partial<JobApplication>) => void;
 }
@@ -130,7 +132,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 // ── Main Drawer ────────────────────────────────────────────────────────────────
 
-export function ApplicationDrawer({ open, onClose, application, onSave, onUpdate }: ApplicationDrawerProps) {
+export function ApplicationDrawer({ open, onClose, application, initialData, onSave, onUpdate }: ApplicationDrawerProps) {
   const [form, setForm] = useState(defaultForm());
   const isEdit = !!application;
 
@@ -141,10 +143,12 @@ export function ApplicationDrawer({ open, onClose, application, onSave, onUpdate
         dateApplied: application.dateApplied.split("T")[0],
         followUpDate: application.followUpDate?.split("T")[0],
       });
+    } else if (initialData) {
+      setForm({ ...defaultForm(), ...initialData });
     } else {
       setForm(defaultForm());
     }
-  }, [application, open]);
+  }, [application, initialData, open]);
 
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
