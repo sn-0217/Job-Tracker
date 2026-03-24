@@ -2,6 +2,7 @@ import type { NetworkingContact } from "@/types/networking";
 import { AnimatePresence, motion } from "framer-motion";
 import { ExternalLink, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { parseEmailData } from "@/lib/emailParser";
 
 interface NetworkingDrawerProps {
   open: boolean;
@@ -66,6 +67,19 @@ export function NetworkingDrawer({
 
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
+
+  const handleEmailBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (!val) return;
+    const parsed = parseEmailData(val);
+    if (!parsed) return;
+    
+    setForm((prev) => ({
+      ...prev,
+      name: prev.name || parsed.name,
+      company: prev.company || parsed.company,
+    }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,6 +183,7 @@ export function NetworkingDrawer({
                         className={inputClass}
                         value={form.email ?? ""}
                         onChange={(e) => set("email", e.target.value)}
+                        onBlur={handleEmailBlur}
                         placeholder="jane@google.com"
                       />
                     </div>

@@ -108,6 +108,7 @@ export function JobTable({ applications, onSelect, onDelete, onArchive }: JobTab
       {applications.map((app, i) => {
         const ctc    = formatSalaryIN(app.salaryMin, app.salaryMax);
         const locCls = app.workLocation ? (LOCATION_CHIP[app.workLocation] ?? "") : "";
+        const isOverdue = app.followUpDate && isPast(parseISO(app.followUpDate)) && !["rejected", "offer"].includes(app.status);
 
         return (
           <motion.div
@@ -116,7 +117,11 @@ export function JobTable({ applications, onSelect, onDelete, onArchive }: JobTab
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1], delay: i * 0.02 }}
             onClick={() => onSelect(app)}
-            className="group grid cursor-pointer grid-cols-[1fr_130px_84px_110px_90px_40px] items-center border-b border-border/40 px-6 py-3 transition-all duration-100 hover:bg-white/[0.025] min-w-[800px]"
+            className={`group grid cursor-pointer grid-cols-[1fr_130px_84px_110px_90px_40px] items-center border-b px-6 py-3 transition-all duration-100 min-w-[800px] ${
+              isOverdue 
+                ? "bg-amber-500/[0.03] hover:bg-amber-500/[0.08] border-border/40 shadow-[inset_2px_0_0_#f59e0b]" 
+                : "border-border/40 hover:bg-white/[0.025]"
+            }`}
           >
             {/* Company + role */}
             <div className="flex items-center gap-3 overflow-hidden pr-4">

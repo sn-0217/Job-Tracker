@@ -10,6 +10,7 @@ import { EMPLOYMENT_TYPES, JOB_SOURCES, STATUS_CONFIG, WORK_LOCATIONS } from "@/
 import { AnimatePresence, motion } from "framer-motion";
 import { Mail, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { parseEmailData } from "@/lib/emailParser";
 import { StatusBadge } from "./StatusBadge";
 
 interface ApplicationDrawerProps {
@@ -153,6 +154,18 @@ export function ApplicationDrawer({ open, onClose, application, initialData, onS
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
 
+  const handleEmailBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (!val) return;
+    const parsed = parseEmailData(val);
+    if (!parsed) return;
+    
+    setForm((prev) => ({
+      ...prev,
+      company: prev.company || parsed.company,
+    }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.jobTitle || !form.company) return;
@@ -282,6 +295,7 @@ export function ApplicationDrawer({ open, onClose, application, initialData, onS
                           className={inputClass}
                           value={form.companyEmail ?? ""}
                           onChange={(e) => set("companyEmail", e.target.value || undefined)}
+                          onBlur={handleEmailBlur}
                           placeholder="hr@company.com"
                           type="email"
                         />

@@ -100,8 +100,12 @@ export function LinkedInTable({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1], delay: i * 0.02 }}
             onClick={() => onSelect(p)}
-            className={`group grid cursor-pointer grid-cols-[1fr_1.5fr_120px_90px_40px] items-start border-b border-border/40 px-6 py-3 transition-all duration-100 hover:bg-white/[0.025] min-w-[700px] ${
-              p.done ? "opacity-40" : ""
+            className={`group grid cursor-pointer grid-cols-[1fr_1.5fr_120px_90px_40px] items-start border-b px-6 py-3 transition-all duration-100 min-w-[700px] ${
+              p.done 
+                ? "opacity-40 border-border/40" 
+                : isOverdue
+                  ? "bg-amber-500/[0.03] hover:bg-amber-500/[0.08] border-border/40 shadow-[inset_2px_0_0_#f59e0b]"
+                  : "border-border/40 hover:bg-white/[0.025]"
             }`}
           >
             {/* Poster + company */}

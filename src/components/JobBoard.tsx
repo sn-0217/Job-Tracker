@@ -8,6 +8,7 @@ import {
 import type { ApplicationStatus, JobApplication } from "@/types/job";
 import { STATUS_CONFIG } from "@/types/job";
 import { DragDropContext, Draggable, Droppable, DropResult } from "@hello-pangea/dnd";
+import { isPast, parseISO } from "date-fns";
 import { ExternalLink, Mail, MapPin, MoreHorizontal } from "lucide-react";
 
 interface JobBoardProps {
@@ -71,7 +72,10 @@ export function JobBoard({
                         snapshot.isDraggingOver ? "bg-primary/5" : ""
                       }`}
                     >
-                      {columnApps.map((app, index) => (
+                      {columnApps.map((app, index) => {
+                        const isOverdue = app.followUpDate && isPast(parseISO(app.followUpDate)) && !["rejected", "offer"].includes(app.status);
+                        
+                        return (
                         <Draggable key={app.id} draggableId={app.id} index={index}>
                           {(provided, snapshot) => (
                             <div
@@ -81,7 +85,11 @@ export function JobBoard({
                               style={{
                                 ...provided.draggableProps.style,
                               }}
-                              className={`group relative rounded-xl border border-border/50 bg-card p-3 shadow-sm transition-all hover:border-primary/20 ${
+                              className={`group relative rounded-xl border p-3 shadow-sm transition-all ${
+                                isOverdue
+                                  ? "border-amber-500/50 bg-amber-500/[0.03] hover:bg-amber-500/[0.08]"
+                                  : "border-border/50 bg-card hover:border-primary/20"
+                              } ${
                                 snapshot.isDragging ? "shadow-xl ring-2 ring-primary/20 scale-[1.02] z-50" : ""
                               }`}
                               onClick={() => onSelect(app)}
@@ -157,7 +165,7 @@ export function JobBoard({
                             </div>
                           )}
                         </Draggable>
-                      ))}
+                      )})}
                       {provided.placeholder}
                     </div>
                   )}
