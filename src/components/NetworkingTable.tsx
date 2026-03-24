@@ -81,8 +81,8 @@ export function NetworkingTable({
   return (
     <div className="flex-1 overflow-auto">
       {/* Header */}
-      <div className="sticky top-0 z-10 grid grid-cols-[1fr_150px_90px_90px_40px] items-center border-b border-border bg-background/95 px-6 py-2.5 backdrop-blur-sm min-w-[700px]">
-        {["Contact / Company", "Context", "Sent", "Follow-up", ""].map((h) => (
+      <div className="sticky top-0 z-10 grid grid-cols-[1fr_1.5fr_110px_90px_90px_40px] items-center border-b border-border bg-background/95 px-6 py-2.5 backdrop-blur-sm min-w-[700px]">
+        {["Contact / Company", "Context", "Email", "Sent", "Follow-up", ""].map((h) => (
           <span key={h} className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/50">
             {h}
           </span>
@@ -100,7 +100,7 @@ export function NetworkingTable({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1], delay: i * 0.02 }}
             onClick={() => onSelect(c)}
-            className={`group grid cursor-pointer grid-cols-[1fr_150px_90px_90px_40px] items-center border-b border-border/40 px-6 py-3 transition-all duration-100 hover:bg-white/[0.025] min-w-[700px] ${
+            className={`group grid cursor-pointer grid-cols-[1fr_1.5fr_110px_90px_90px_40px] items-start border-b border-border/40 px-6 py-3 transition-all duration-100 hover:bg-white/[0.025] min-w-[700px] ${
               c.done ? "opacity-40" : ""
             }`}
           >
@@ -121,15 +121,37 @@ export function NetworkingTable({
             </div>
 
             {/* Context */}
-            <p className="truncate text-[12px] text-muted-foreground pr-2">
+            <p className="line-clamp-2 text-[12px] text-muted-foreground pr-4 leading-relaxed mt-0.5">
               {c.context || <span className="text-muted-foreground/25">—</span>}
             </p>
 
+            {/* Email Link */}
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-1.5 mt-0.5"
+            >
+              {c.emailLink ? (
+                <a
+                  href={c.emailLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-[11px] text-primary/70 hover:text-primary transition-colors"
+                >
+                  <ExternalLink className="h-3 w-3 shrink-0" />
+                  <span>View email</span>
+                </a>
+              ) : (
+                <span className="text-[11px] text-muted-foreground/25">—</span>
+              )}
+            </div>
+
             {/* Date sent */}
-            <p className="text-[12px] tabular-nums text-muted-foreground">{formatDate(c.dateSent)}</p>
+            <div className="mt-0.5">
+              <p className="text-[12px] tabular-nums text-muted-foreground">{formatDate(c.dateSent)}</p>
+            </div>
 
             {/* Follow-up */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 mt-0.5">
               {isOverdue && (
                 <div
                   title="Follow-up overdue"
@@ -142,7 +164,7 @@ export function NetworkingTable({
             </div>
 
             {/* Actions */}
-            <div onClick={(e) => e.stopPropagation()}>
+            <div onClick={(e) => e.stopPropagation()} className="mt-0.5">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-all hover:bg-white/8 hover:text-foreground group-hover:opacity-100">

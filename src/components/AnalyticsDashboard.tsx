@@ -1,5 +1,7 @@
 import type { ApplicationStatus, JobApplication } from "@/types/job";
 import { STATUS_CONFIG } from "@/types/job";
+import type { NetworkingContact } from "@/types/networking";
+import type { LinkedInPost } from "@/types/linkedinPost";
 import { motion } from "framer-motion";
 import { useMemo } from "react";
 import {
@@ -16,7 +18,8 @@ import {
 
 interface AnalyticsDashboardProps {
   applications: JobApplication[];
-  onClose: () => void;
+  networkingContacts: NetworkingContact[];
+  linkedInPosts: LinkedInPost[];
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -30,7 +33,7 @@ const STATUS_COLORS: Record<string, string> = {
 const CHART_COLORS = ["#6366f1", "#a78bfa", "#34d399", "#fbbf24", "#f87171", "#71717a"];
 
 const PIPELINE_ORDER: ApplicationStatus[] = [
-  "saved", "applied", "interviewing", "offer",
+  "rejected", "applied", "interviewing", "offer",
 ];
 
 const tooltipStyle = {
@@ -42,7 +45,7 @@ const tooltipStyle = {
   boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
 };
 
-export function AnalyticsDashboard({ applications, onClose }: AnalyticsDashboardProps) {
+export function AnalyticsDashboard({ applications, networkingContacts, linkedInPosts }: AnalyticsDashboardProps) {
   const active = useMemo(() => applications.filter((a) => !a.archived), [applications]);
 
   const pipelineData = useMemo(() => {
@@ -120,18 +123,15 @@ export function AnalyticsDashboard({ applications, onClose }: AnalyticsDashboard
       }));
   }, [active]);
 
+  const networkingActive = useMemo(() => networkingContacts.filter((c) => !c.done), [networkingContacts]);
+  const linkedInActive = useMemo(() => linkedInPosts.filter((p) => !p.done), [linkedInPosts]);
+
   const statCards = [
     {
-      label: "Total Active",
+      label: "Active Jobs",
       value: active.length,
       sub: `${applications.filter((a) => a.archived).length} archived`,
       accent: "text-foreground",
-    },
-    {
-      label: "Response Rate",
-      value: `${responseRate.rate}%`,
-      sub: `${responseRate.responded} / ${responseRate.total}`,
-      accent: responseRate.rate > 30 ? "text-emerald-400" : "text-foreground",
     },
     {
       label: "Interview Rate",
@@ -140,10 +140,16 @@ export function AnalyticsDashboard({ applications, onClose }: AnalyticsDashboard
       accent: interviewRate.rate > 20 ? "text-violet-400" : "text-foreground",
     },
     {
-      label: "Offer Rate",
-      value: `${offerRate.rate}%`,
-      sub: `${offerRate.count} offers`,
-      accent: offerRate.count > 0 ? "text-emerald-400" : "text-foreground",
+      label: "Active Contacts",
+      value: networkingActive.length,
+      sub: `${networkingContacts.filter((c) => c.done).length} completed`,
+      accent: "text-sky-400",
+    },
+    {
+      label: "Saved Posts",
+      value: linkedInActive.length,
+      sub: `${linkedInPosts.filter((c) => c.done).length} completed`,
+      accent: "text-emerald-400",
     },
   ];
 
@@ -159,10 +165,12 @@ export function AnalyticsDashboard({ applications, onClose }: AnalyticsDashboard
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto">
-      {/* Header — no explicit back button; user uses the Analytics tab to toggle */}
-      <div className="flex h-[52px] items-center gap-3 border-b border-border px-6">
-        <span className="text-[13px] font-semibold text-foreground">Analytics Overview</span>
-      </div>
+      {/* Header */}
+      <header className="flex flex-col border-b border-border bg-card/60 backdrop-blur-md z-30 sticky top-0 shrink-0">
+        <div className="flex sm:h-14 flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 sm:py-0">
+          <h1 className="text-lg font-semibold text-foreground mr-auto shrink-0">Analytics Overview</h1>
+        </div>
+      </header>
 
       <div className="space-y-5 px-5 py-5">
         {/* Stat Cards */}

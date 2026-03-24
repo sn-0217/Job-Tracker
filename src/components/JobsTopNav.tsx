@@ -1,15 +1,13 @@
 import { useAuth } from "@/components/AuthProvider";
 import type { ApplicationStatus } from "@/types/job";
-import { Archive, BarChart3, Bell, Briefcase, Link, Linkedin, LogOut, Mail, Plus, Search, X } from "lucide-react";
+import { Archive, Briefcase, Link, Plus, Search, X } from "lucide-react";
 import { useRef, useState } from "react";
 
-interface TopNavProps {
+interface JobsTopNavProps {
   statusFilter: ApplicationStatus | "all";
   setStatusFilter: (s: ApplicationStatus | "all") => void;
   showArchived: boolean;
   setShowArchived: (v: boolean) => void;
-  showAnalytics: boolean;
-  onShowAnalytics: () => void;
   searchQuery: string;
   setSearchQuery: (q: string) => void;
   onAddNew: () => void;
@@ -19,41 +17,29 @@ interface TopNavProps {
     applied: number;
     interviewing: number;
     offers: number;
-    followUpsDue: number;       // jobs
-    networkingDue: number;
-    linkedInDue: number;
   };
-  activeSection: "jobs" | "networking" | "posts";
-  setActiveSection: (s: "jobs" | "networking" | "posts") => void;
 }
 
 type NavTab = {
-  key: ApplicationStatus | "all" | "__archived__" | "__analytics__" | "__networking__" | "__posts__";
+  key: ApplicationStatus | "all" | "__archived__";
   label: string;
   count?: number;
 };
 
-export function TopNav({
+export function JobsTopNav({
   statusFilter,
   setStatusFilter,
   showArchived,
   setShowArchived,
-  showAnalytics,
-  onShowAnalytics,
   searchQuery,
   setSearchQuery,
   onAddNew,
   onAddFromUrl,
   stats,
-  activeSection,
-  setActiveSection,
-}: TopNavProps) {
-  const { signOut } = useAuth();
+}: JobsTopNavProps) {
   const [urlPopoverOpen, setUrlPopoverOpen] = useState(false);
   const [urlInput, setUrlInput] = useState("");
   const urlInputRef = useRef<HTMLInputElement>(null);
-
-  const totalDue = stats.followUpsDue + stats.networkingDue + stats.linkedInDue;
 
   const tabs: NavTab[] = [
     { key: "all",             label: "All",        count: stats.total },
@@ -61,38 +47,15 @@ export function TopNav({
     { key: "interviewing",    label: "Interviews", count: stats.interviewing },
     { key: "offer",           label: "Offers",     count: stats.offers },
     { key: "__archived__",    label: "Archived" },
-    { key: "__analytics__",   label: "Analytics" },
-    { key: "__networking__",  label: "Networking" },
-    { key: "__posts__",       label: "Posts" },
   ];
 
-  const activeTab =
-    activeSection === "networking"
-      ? "__networking__"
-      : activeSection === "posts"
-      ? "__posts__"
-      : showAnalytics
-      ? "__analytics__"
-      : showArchived
-      ? "__archived__"
-      : statusFilter;
+  const activeTab = showArchived ? "__archived__" : statusFilter;
 
   function handleTab(key: typeof tabs[number]["key"]) {
-    if (key === "__analytics__") {
-      setActiveSection("jobs");
-      onShowAnalytics();
-    } else if (key === "__archived__") {
-      setActiveSection("jobs");
+    if (key === "__archived__") {
       setShowArchived(true);
       setStatusFilter("all");
-    } else if (key === "__networking__") {
-      setActiveSection("networking");
-      setShowArchived(false);
-    } else if (key === "__posts__") {
-      setActiveSection("posts");
-      setShowArchived(false);
     } else {
-      setActiveSection("jobs");
       setShowArchived(false);
       setStatusFilter(key as ApplicationStatus | "all");
     }
@@ -109,28 +72,8 @@ export function TopNav({
 
   return (
     <header className="flex flex-col border-b border-border bg-card/60 backdrop-blur-md z-30 sticky top-0">
-      {/* Top row: logo | search | actions */}
       <div className="flex sm:h-14 flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 sm:py-0">
-        {/* Logo */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/20">
-            <Briefcase className="h-3.5 w-3.5 text-primary" />
-          </div>
-          <span className="font-display text-[14px] tracking-tight text-foreground">The Hunt</span>
-        </div>
-
-        {/* Spacer */}
-        <div className="flex-1" />
-
-        {/* Follow-up badge — combined */}
-        {totalDue > 0 && (
-          <div className="flex items-center gap-1.5 rounded-full border border-amber-500/25 bg-amber-500/10 px-3 py-1">
-            <Bell className="h-3 w-3 text-amber-400" />
-            <span className="text-[12px] font-medium text-amber-300">
-              {totalDue} due
-            </span>
-          </div>
-        )}
+        <h1 className="text-lg font-semibold text-foreground mr-auto shrink-0">Applications</h1>
 
         {/* Search */}
         <div className="relative">
@@ -188,40 +131,13 @@ export function TopNav({
           )}
         </div>
 
-        {/* Section-aware add button */}
-        {activeSection === "networking" ? (
-          <button
-            onClick={onAddNew}
-            className="btn-glow flex h-9 items-center gap-2 rounded-xl bg-primary px-4 text-[13px] font-semibold text-white transition-all hover:bg-primary/90 active:scale-[0.97]"
-          >
-            <Mail className="h-3.5 w-3.5" />
-            Add Contact
-          </button>
-        ) : activeSection === "posts" ? (
-          <button
-            onClick={onAddNew}
-            className="btn-glow flex h-9 items-center gap-2 rounded-xl bg-primary px-4 text-[13px] font-semibold text-white transition-all hover:bg-primary/90 active:scale-[0.97]"
-          >
-            <Linkedin className="h-3.5 w-3.5" />
-            Save Post
-          </button>
-        ) : (
-          <button
-            onClick={onAddNew}
-            className="btn-glow flex h-9 items-center gap-2 rounded-xl bg-primary px-4 text-[13px] font-semibold text-white transition-all hover:bg-primary/90 active:scale-[0.97]"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Track Job
-          </button>
-        )}
-
-        {/* Logout */}
+        {/* Add button */}
         <button
-          onClick={() => signOut()}
-          title="Sign out"
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-muted/40 text-muted-foreground transition-all hover:bg-red-500/10 hover:text-red-400 active:scale-[0.97]"
+          onClick={onAddNew}
+          className="btn-glow flex h-9 items-center gap-2 rounded-xl bg-primary px-4 text-[13px] font-semibold text-white transition-all hover:bg-primary/90 active:scale-[0.97]"
         >
-          <LogOut className="h-4 w-4" />
+          <Plus className="h-3.5 w-3.5" />
+          Track Job
         </button>
       </div>
 
@@ -229,10 +145,8 @@ export function TopNav({
       <div className="flex items-center gap-0.5 px-3 sm:px-5 pb-0 overflow-x-auto no-scrollbar">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.key;
-          const isAnalytics  = tab.key === "__analytics__";
           const isArchived   = tab.key === "__archived__";
-          const isNetworking = tab.key === "__networking__";
-          const isPosts      = tab.key === "__posts__";
+
           return (
             <button
               key={tab.key}
@@ -243,10 +157,7 @@ export function TopNav({
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {isAnalytics  && <BarChart3 className="h-3.5 w-3.5" />}
-              {isArchived   && <Archive   className="h-3.5 w-3.5" />}
-              {isNetworking && <Mail      className="h-3.5 w-3.5" />}
-              {isPosts      && <Linkedin  className="h-3.5 w-3.5" />}
+              {isArchived && <Archive className="h-3.5 w-3.5" />}
               {tab.label}
               {tab.count !== undefined && tab.count > 0 && (
                 <span

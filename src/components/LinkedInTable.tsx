@@ -81,7 +81,7 @@ export function LinkedInTable({
   return (
     <div className="flex-1 overflow-auto">
       {/* Header */}
-      <div className="sticky top-0 z-10 grid grid-cols-[1fr_160px_120px_90px_40px] items-center border-b border-border bg-background/95 px-6 py-2.5 backdrop-blur-sm min-w-[700px]">
+      <div className="sticky top-0 z-10 grid grid-cols-[1fr_1.5fr_120px_90px_40px] items-center border-b border-border bg-background/95 px-6 py-2.5 backdrop-blur-sm min-w-[700px]">
         {["Poster / Company", "Context", "Post", "Follow-up", ""].map((h) => (
           <span key={h} className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/50">
             {h}
@@ -100,7 +100,7 @@ export function LinkedInTable({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1], delay: i * 0.02 }}
             onClick={() => onSelect(p)}
-            className={`group grid cursor-pointer grid-cols-[1fr_160px_120px_90px_40px] items-center border-b border-border/40 px-6 py-3 transition-all duration-100 hover:bg-white/[0.025] min-w-[700px] ${
+            className={`group grid cursor-pointer grid-cols-[1fr_1.5fr_120px_90px_40px] items-start border-b border-border/40 px-6 py-3 transition-all duration-100 hover:bg-white/[0.025] min-w-[700px] ${
               p.done ? "opacity-40" : ""
             }`}
           >
@@ -133,14 +133,14 @@ export function LinkedInTable({
             </div>
 
             {/* Context */}
-            <p className="truncate text-[12px] text-muted-foreground pr-2">
+            <p className="line-clamp-2 text-[12px] text-muted-foreground pr-4 leading-relaxed mt-0.5">
               {p.context || <span className="text-muted-foreground/25">—</span>}
             </p>
 
             {/* Post link */}
             <div
               onClick={(e) => e.stopPropagation()}
-              className="flex items-center gap-1.5"
+              className="flex items-center gap-1.5 mt-0.5"
             >
               <a
                 href={p.postUrl}
@@ -154,7 +154,7 @@ export function LinkedInTable({
             </div>
 
             {/* Follow-up */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 mt-0.5">
               {isOverdue && (
                 <div
                   title="Follow-up overdue"
@@ -167,7 +167,7 @@ export function LinkedInTable({
             </div>
 
             {/* Actions */}
-            <div onClick={(e) => e.stopPropagation()}>
+            <div onClick={(e) => e.stopPropagation()} className="mt-0.5">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-all hover:bg-white/8 hover:text-foreground group-hover:opacity-100">
