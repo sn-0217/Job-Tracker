@@ -71,74 +71,71 @@ export function JobsTopNav({
   }
 
   return (
-    <header className="flex flex-col border-b border-border bg-card/60 backdrop-blur-md z-30 sticky top-0">
-      <div className="flex sm:h-14 flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 sm:py-0">
-        <h1 className="text-lg font-semibold text-foreground mr-auto shrink-0">Applications</h1>
+    <header className="flex flex-col border-b border-border bg-card/60 backdrop-blur-md z-30 sticky top-0 pb-1 sm:pb-0">
+      <div className="flex flex-wrap items-center gap-3 px-4 py-3 sm:h-14 sm:flex-nowrap sm:gap-4 sm:px-6 sm:py-0">
+        <h1 className="mr-auto shrink-0 text-lg font-semibold text-foreground">Applications</h1>
+
+        {/* Action Buttons (Top Right on Mobile) */}
+        <div className="flex items-center gap-2 sm:order-last">
+          {/* URL import button */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                setUrlPopoverOpen((v) => !v);
+                setTimeout(() => urlInputRef.current?.focus(), 50);
+              }}
+              title="Import from job URL"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-muted/40 text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary active:scale-[0.97]"
+            >
+              <Link className="h-4 w-4" />
+            </button>
+
+            {/* URL popover */}
+            {urlPopoverOpen && (
+              <form
+                onSubmit={handleUrlSubmit}
+                className="absolute right-0 top-11 z-50 flex w-[300px] sm:w-[340px] items-center gap-2 rounded-xl border border-border bg-card p-3 shadow-2xl shadow-black/40"
+              >
+                <Search className="h-4 w-4 shrink-0 text-muted-foreground/50" />
+                <input
+                  ref={urlInputRef}
+                  type="url"
+                  className="flex-1 bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground/40 outline-none min-w-0"
+                  placeholder="Paste URL..."
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  className="rounded-lg bg-primary px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-primary/90"
+                >
+                  Import
+                </button>
+              </form>
+            )}
+          </div>
+
+          {/* Add button */}
+          <button
+            onClick={onAddNew}
+            className="btn-glow flex h-9 items-center gap-2 rounded-xl bg-primary px-3 sm:px-4 text-[13px] font-semibold text-white transition-all hover:bg-primary/90 active:scale-[0.97]"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Track Job</span>
+            <span className="sm:hidden">Add</span>
+          </button>
+        </div>
 
         {/* Search */}
-        <div className="relative">
+        <div className="relative w-full order-last mt-1 sm:mt-0 sm:w-auto sm:order-none pointer-events-auto">
           <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/50" />
           <input
-            className="h-9 w-full sm:w-64 max-w-[200px] sm:max-w-none rounded-xl border border-border bg-muted/40 pl-9 pr-4 text-[13px] text-foreground placeholder:text-muted-foreground/40 transition-all focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15 sm:focus:w-72"
+            className="h-9 w-full sm:w-64 rounded-xl border border-border bg-muted/40 pl-9 pr-4 text-[13px] text-foreground placeholder:text-muted-foreground/40 transition-all focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15 sm:focus:w-72"
             placeholder="Search roles, companies..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-
-        {/* URL import button */}
-        <div className="relative">
-          <button
-            onClick={() => {
-              setUrlPopoverOpen((v) => !v);
-              setTimeout(() => urlInputRef.current?.focus(), 50);
-            }}
-            title="Import from job URL"
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-muted/40 text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary active:scale-[0.97]"
-          >
-            <Link className="h-4 w-4" />
-          </button>
-
-          {/* URL popover */}
-          {urlPopoverOpen && (
-            <form
-              onSubmit={handleUrlSubmit}
-              className="absolute right-0 top-11 z-50 flex w-[340px] items-center gap-2 rounded-xl border border-border bg-card p-3 shadow-2xl shadow-black/40"
-            >
-              <Search className="h-4 w-4 shrink-0 text-muted-foreground/50" />
-              <input
-                ref={urlInputRef}
-                type="url"
-                className="flex-1 bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground/40 outline-none"
-                placeholder="Paste job URL (LinkedIn, Workday…)"
-                value={urlInput}
-                onChange={(e) => setUrlInput(e.target.value)}
-              />
-              <button
-                type="button"
-                onClick={() => { setUrlPopoverOpen(false); setUrlInput(""); }}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <X className="h-4 w-4" />
-              </button>
-              <button
-                type="submit"
-                className="rounded-lg bg-primary px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-primary/90"
-              >
-                Import
-              </button>
-            </form>
-          )}
-        </div>
-
-        {/* Add button */}
-        <button
-          onClick={onAddNew}
-          className="btn-glow flex h-9 items-center gap-2 rounded-xl bg-primary px-4 text-[13px] font-semibold text-white transition-all hover:bg-primary/90 active:scale-[0.97]"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          Track Job
-        </button>
       </div>
 
       {/* Tab row */}

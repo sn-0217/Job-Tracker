@@ -14,8 +14,8 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="flex w-64 flex-col border-r border-border bg-card/40 px-4 py-6">
-      <div className="flex items-center gap-3 px-2 mb-8">
+    <aside className="z-50 flex shrink-0 flex-row items-center justify-around border-t border-border bg-card/95 px-2 pb-3 pt-2 backdrop-blur-md sm:w-64 sm:flex-col sm:justify-start sm:border-r sm:border-t-0 sm:px-4 sm:py-6 sm:pb-6">
+      <div className="hidden items-center gap-3 px-2 mb-8 sm:flex">
         <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/20">
           <Briefcase className="h-4 w-4 text-primary" />
         </div>
@@ -24,8 +24,8 @@ export function Sidebar() {
         </span>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-1">
-        <span className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/60">
+      <nav className="flex w-full flex-row justify-around gap-1 sm:flex-1 sm:flex-col sm:justify-start">
+        <span className="hidden mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/60 sm:block">
           Main Menu
         </span>
 
@@ -36,23 +36,23 @@ export function Sidebar() {
             <Link
               key={link.href}
               to={link.href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-all ${
+              className={`flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 rounded-lg px-2 sm:px-3 py-2 sm:py-2.5 text-[10px] sm:text-[13px] font-medium transition-all flex-1 sm:flex-none ${
                 isActive
-                  ? "bg-primary/10 text-primary"
+                  ? "sm:bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
               }`}
             >
-              <Icon className={`h-4 w-4 ${isActive ? "text-primary" : "text-muted-foreground/70"}`} />
-              {link.label}
+              <Icon className={`h-5 w-5 sm:h-4 sm:w-4 ${isActive ? "text-primary" : "text-muted-foreground/70"}`} />
+              <span className="block sm:inline truncate">{link.label}</span>
             </Link>
           );
         })}
       </nav>
 
-      <div className="mt-auto pt-4 border-t border-border/50">
+      <div className="hidden sm:mt-auto sm:block sm:pt-4 sm:border-t sm:border-border/50 w-full">
         <button
           onClick={() => signOut()}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium text-muted-foreground transition-all hover:bg-red-500/10 hover:text-red-400"
+          className="flex w-full items-center justify-center sm:justify-start gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium text-muted-foreground transition-all hover:bg-red-500/10 hover:text-red-400"
         >
           <LogOut className="h-4 w-4" />
           Sign out

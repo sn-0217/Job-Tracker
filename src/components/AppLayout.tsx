@@ -16,7 +16,7 @@ export function AppLayout() {
   const linkedInStore = useLinkedInStore();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen flex-col-reverse sm:flex-row overflow-hidden bg-background">
       <Sidebar />
       <main className="flex flex-1 flex-col overflow-hidden relative">
         <Outlet context={{ jobStore, networkingStore, linkedInStore } satisfies AppOutletContext} />
